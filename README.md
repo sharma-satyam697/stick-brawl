@@ -11,7 +11,7 @@ A 2-player stick fighting game that runs in the browser. There are 10 fighters, 
 You need [Node.js](https://nodejs.org) 16 or newer. Nothing else is needed. There are no packages to install.
 
 ```bash
-git clone https://github.com/<your-name>/stick-brawl.git
+git clone https://github.com/sharma-satyam697/stick-brawl.git
 cd stick-brawl
 npm start
 ```
