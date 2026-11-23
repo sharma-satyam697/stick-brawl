@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stick Brawl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0718;
+  --ink: #fff6ee;
+  --p1: #ff4f6d;
+  --p2: #3fa8ff;
+  --gold: #ffd23f;
+  --panel: rgba(16, 8, 30, .86);
+  --display: "Bungee", Impact, "Arial Black", sans-serif;
+  --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); overflow: hidden; }
+[hidden] { display: none !important; }
+#game { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: block; image-rendering: auto; }
+.overlay {
+  position: fixed; inset: 0; z-index: 2; overflow: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 16px;
+  padding: 20px 16px; background: rgba(10, 4, 22, .62); text-align: center;
+}
+/* center when there is room, scroll from the top when there is not */
+.overlay > :first-child { margin-top: auto; }
+.overlay > :last-child { margin-bottom: auto; }
+h1 {
+  font-family: var(--display); font-weight: 400; margin: 0; line-height: .9; text-transform: uppercase;
+  font-size: clamp(64px, 12vw, 150px); color: var(--gold);
+  text-shadow: 5px 5px 0 #ff3d7f, 11px 11px 0 rgba(0, 0, 0, .45); transform: rotate(-4deg);
+}
+h2 { font-family: var(--display); font-weight: 400; margin: 0; font-size: clamp(28px, 4.5vw, 48px); color: var(--gold); text-shadow: 3px 3px 0 #ff3d7f; }
+h3 { font-family: var(--display); font-weight: 400; margin: 0 0 6px; font-size: 18px; }
+p { margin: 4px 0; }
+.tagline { font-size: 18px; opacity: .9; }
+.note { font-size: 14px; opacity: .8; max-width: 640px; line-height: 1.5; }
+.row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+button.big {
+  font-family: var(--display); font-size: 22px; padding: 14px 26px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--gold); color: #1a0d00; box-shadow: 0 6px 0 #b0800a; transition: transform .1s;
+}
+button.big small { display: block; font-family: var(--body); font-size: 12px; font-weight: 600; opacity: .7; margin-top: 2px; }
+button.big.alt { background: #ff3d7f; color: #fff; box-shadow: 0 6px 0 #9c1046; }
+button.big:hover { transform: translateY(-2px); }
+button.big:active { transform: translateY(3px); box-shadow: 0 2px 0 #b0800a; }
+button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 16px; }
+.ctl { background: var(--panel); border-radius: 14px; padding: 14px 18px; border: 2px solid var(--p1); text-align: left; font-size: 15px; line-height: 1.9; }
+.ctl.p2 { border-color: var(--p2); }
+.ctl.p1 h3 { color: var(--p1); } .ctl.p2 h3 { color: var(--p2); }
+kbd { font-family: var(--body); font-weight: 800; font-size: 13px; background: #2c1d48; border-radius: 6px; padding: 2px 7px; border-bottom: 3px solid #140a24; margin-right: 3px; }
+
+#grid { display: grid; grid-template-columns: repeat(5, minmax(0, 112px)); gap: 12px; }
+.card {
+  position: relative; background: var(--panel); border: 3px solid #35264f; border-radius: 16px; padding: 10px 10px 8px;
+  cursor: pointer; color: var(--ink); font: inherit; transition: transform .12s, border-color .12s, box-shadow .12s;
+}
+.face {
+  width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  font-family: var(--display); font-size: 38px; background: #1d1233; border: 4px solid var(--c, #fff); color: var(--c, #fff);
+}
+.face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card .nm { font-family: var(--display); margin-top: 8px; font-size: 15px; color: var(--c); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.c0 { border-color: var(--p1); transform: translateY(-5px); }
+.card.c1 { border-color: var(--p2); transform: translateY(-5px); }
+.card.c0.c1 { border-color: #fff; }
+.card.l0 { box-shadow: 0 0 0 3px var(--p1), 0 0 30px var(--p1); }
+.card.l1 { box-shadow: 0 0 0 3px var(--p2), 0 0 30px var(--p2); }
+.card.l0.l1 { box-shadow: 0 0 0 3px #fff, 0 0 30px #fff; }
+.tag { position: absolute; top: -12px; font-family: var(--display); font-size: 12px; padding: 2px 8px; border-radius: 6px; color: #fff; }
+.tag.t0 { left: -6px; background: var(--p1); }
+.tag.t1 { right: -6px; background: var(--p2); }
+.picks { display: grid; grid-template-columns: repeat(2, minmax(0, 400px)); gap: 16px; width: 100%; justify-content: center; }
+.pick { background: var(--panel); border-radius: 14px; padding: 12px 16px; border-left: 6px solid var(--p1); text-align: left; min-height: 130px; }
+.pick.p2 { border-left-color: var(--p2); }
+.pick .who { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .75; }
+.pick .pn { font-family: var(--display); font-size: 26px; margin: 2px 0 8px; }
+.pick ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 14px; }
+.pick li b { font-weight: 800; }
+.pick li .cost { color: var(--gold); letter-spacing: 2px; margin-left: 4px; }
+.pick li .ty { opacity: .65; }
+#end { background: linear-gradient(180deg, rgba(10, 4, 22, .2), rgba(10, 4, 22, .8)); justify-content: flex-start; padding-top: 6vh; }
+#endFace { width: 150px; }
+.score { font-family: var(--display); font-size: 28px; }
+#lobbyForm { align-items: center; }
+#roomName {
+  font-family: var(--display); font-size: 22px; padding: 12px 16px; border-radius: 12px; border: 3px solid #35264f;
+  background: var(--panel); color: var(--ink); width: min(320px, 100%); text-transform: lowercase;
+}
+#roomName:focus { outline: none; border-color: var(--gold); }
+#lobbyMsg { min-height: 3em; word-break: break-word; }
+.leave {
+  position: fixed; top: 10px; right: 10px; z-index: 3; font-family: var(--body); font-weight: 800; font-size: 13px;
+  padding: 7px 12px; border-radius: 8px; border: 2px solid #ff3d7f; background: rgba(16, 8, 30, .9); color: #fff; cursor: pointer;
+}
+@media (max-width: 860px) {
+  #grid { grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; gap: 8px; }
+  .card .nm { font-size: 11px; }
+  .picks, .controls { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Stick Brawl game"></canvas>
+
+<div id="title" class="overlay">
+  <h1>Stick<br>Brawl</h1>
+  <p class="tagline">10 fighters. 3 super powers each. One winner.</p>
+  <div class="row">
+    <button id="btnPvp" class="big" type="button">2 Players<small>press 1</small></button>
+    <button id="btnCpu" class="big alt" type="button">vs Computer<small>press 2</small></button>
+    <button id="btnOnline" class="big" type="button">Online<small>press 3</small></button>
+  </div>
+  <div class="controls">
+    <div class="ctl p1">
+      <h3>Player 1</h3>
+      <div><kbd>A</kbd><kbd>D</kbd> move &nbsp; <kbd>W</kbd> jump &nbsp; <kbd>S</kbd> block</div>
+      <div><kbd>F</kbd> punch &nbsp; <kbd>G</kbd> kick</div>
+      <div><kbd>C</kbd> grab &nbsp; <kbd>V</kbd> power smack</div>
+      <div>Super powers <kbd>R</kbd><kbd>T</kbd><kbd>Y</kbd></div>
+    </div>
+    <div class="ctl p2">
+      <h3>Player 2</h3>
+      <div><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>↑</kbd> jump &nbsp; <kbd>↓</kbd> block</div>
+      <div><kbd>K</kbd> punch &nbsp; <kbd>L</kbd> kick</div>
+      <div><kbd>M</kbd> grab &nbsp; <kbd>,</kbd> power smack</div>
+      <div>Super powers <kbd>I</kbd><kbd>O</kbd><kbd>P</kbd></div>
+    </div>
+  </div>
+  <p class="note">Grab beats block. While holding, press grab or forward to throw, or press back to throw behind you. If you get grabbed, press grab fast to break free. Power smack is slow but breaks a block.</p>
+  <p class="note">Online: you each use the Player 1 keys (or arrows with K L M ,) on your own computer.</p>
+  <p class="note">Hit your opponent to fill your super meter. 1 bar unlocks power 1, 2 bars unlock power 2, and a full meter unlocks the ultimate. Game controllers also work. Press Esc to pause.</p>
+</div>
+
+<div id="lobby" class="overlay" hidden>
+  <h2>Play online</h2>
+  <p class="note">Type a room name. Your friend types the same name on their computer. The fight starts when you are both in.</p>
+  <form id="lobbyForm" class="row">
+    <input id="roomName" maxlength="24" placeholder="room name" autocomplete="off" spellcheck="false" aria-label="Room name">
+    <button class="big" type="submit">Join room</button>
+  </form>
+  <p id="lobbyMsg" class="note" aria-live="polite"></p>
+  <button id="btnLobbyBack" class="big alt" type="button">Back<small>Esc</small></button>
+</div>
+
+<div id="select" class="overlay" hidden>
+  <h2>Choose your fighter</h2>
+  <div id="grid"></div>
+  <div class="picks"><div id="pick0" class="pick p1"></div><div id="pick1" class="pick p2"></div></div>
+  <p class="note" id="selHint"></p>
+</div>
+
+<div id="pause" class="overlay" hidden>
+  <h2>Paused</h2>
+  <div class="row">
+    <button id="btnResume" class="big" type="button">Resume<small>Esc</small></button>
+    <button id="btnQuit" class="big alt" type="button">Change fighters<small>Q</small></button>
+  </div>
+</div>
+
+<div id="end" class="overlay" hidden>
+  <div id="endFace" class="face"></div>
+  <h2 id="endName"></h2>
+  <p id="endScore" class="score"></p>
+  <div class="row">
+    <button id="btnRematch" class="big" type="button">Rematch<small>Enter</small></button>
+    <button id="btnChange" class="big alt" type="button">Change fighters<small>Esc</small></button>
+  </div>
+</div>
+
+<button id="btnLeave" class="leave" type="button" hidden>Leave room</button>
+
+<script src="characters.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

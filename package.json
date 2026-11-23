@@ -1,0 +1,14 @@
+{
+  "name": "stick-brawl",
+  "version": "1.0.0",
+  "description": "A 2-player stick fighting game in the browser. Play on one keyboard, against the computer, or online in a shared room.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT",
+  "private": true
+}
